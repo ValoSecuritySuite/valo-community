@@ -1,0 +1,812 @@
+
+# ── Context rules (governance signals evaluated against pipeline metadata) ───
+# These rules are evaluated by app/services/rule_engine.py:evaluate() and feed
+# into governance policies under app/policies/governance/. They are kept low-
+# weight and conservative so legacy callers that assert empty context_score
+# behaviour continue to work when no signals are present.
+rules:
+
+  - name: pii_signal
+    severity: 3
+    weight: 5.0
+    enabled: true
+    patterns:
+      - field: contains_email
+        op: eq
+        value: true
+
+  - name: secret_signal
+    severity: 4
+    weight: 8.0
+    enabled: true
+    patterns:
+      - field: contains_secret_keyword
+        op: eq
+        value: true
+
+  - name: oversize_prompt
+    severity: 2
+    weight: 3.0
+    enabled: true
+    patterns:
+      - field: content_length
+        op: gte
+        value: 20000
+
+  - name: prompt_injection_finding_count
+    severity: 4
+    weight: 8.0
+    enabled: true
+    patterns:
+      - field: text_finding_count
+        op: gte
+        value: 3
+
+  - name: ssn_detected
+    severity: 5
+    weight: 12.0
+    enabled: true
+    patterns:
+      - field: contains_ssn_pattern
+        op: eq
+        value: true
+
+# ── Prompt-injection detection rules (text-scan only) ────────────────────────
+text_scan_rules:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 1 — Instruction Override
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: instruction_override_direct
+    family: instruction_override
+    category: regex
+    pattern: '(?:ignore|disregard|forget|skip|bypass|override|overrule|drop|dismiss|abandon|cancel|revoke|void)\s+(?:all\s+)?(?:the\s+)?(?:my\s+)?(?:your\s+)?(?:any\s+)?(?:(?:previous|prior|above|below|earlier|given|original|preceding|existing|current|initial|old)\s+(?:instructions?|directions?|prompts?|requests?|guidelines?|rules?|commands?|text|constraints?|policies?|input)|(?:instructions?|directions?|prompts?|requests?|guidelines?|rules?|commands?|text|constraints?|policies?|input)\s+(?:above|below|previously|before|that\s+(?:were|you\s+were|have\s+been)\s+given))'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Direct instruction override — nullification language targeting prior directives"
+
+  - id: instruction_override_dont_follow
+    family: instruction_override
+    category: regex
+    pattern: '(?:don''t|do\s+not|never)\s+(?:follow|obey|listen\s+to|comply\s+with|adhere\s+to)\s+(?:any\s+)?(?:previous|prior|earlier|given|original|the|above)\s+(?:requests?|instructions?|directions?|rules?|prompts?|guidelines?)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Negated compliance — 'don''t follow previous instructions'"
+
+  - id: instruction_override_new_announcement
+    family: instruction_override
+    category: regex
+    pattern: '(?:new|different|updated?|override|overriding|replacement)\s+instructions?\s+(?:that\s+)?(?:override|replace|supersede|overwrite)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Announcement of overriding instructions"
+
+  - id: instruction_override_giving_new
+    family: instruction_override
+    category: regex
+    pattern: '(?:i\s+am\s+giving|here\s+are|follow\s+these|your\s+new|accepting\s+new)\s+(?:you\s+)?(?:new|updated?|replacement|different)\s+instructions?'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Explicit delivery of replacement instructions"
+
+  - id: instruction_override_delimiter
+    family: instruction_override
+    category: regex
+    pattern: '={3,}\s*(?:END|STOP|BREAK|DONE|RESET)|---{3,}\s*(?:END|STOP|BREAK|DONE|RESET)|<<<\s*(?:END|STOP|BREAK|DONE|RESET)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Delimiter injection to terminate prior context"
+
+  - id: instruction_override_task_switch
+    family: instruction_override
+    category: regex
+    pattern: '(?:now\s+)?(?:we\s+will\s+|let''s\s+)?(?:perform|do|start|begin)\s+a\s+(?:new|different|separate)\s+task'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Task-switching injection"
+
+  - id: instruction_override_invalidation
+    family: instruction_override
+    category: regex
+    pattern: '(?:your\s+)?(?:all\s*)?(?:previous|prior|above|earlier|given|existing|first|initial|original|current)\s+instructions?\s+(?:are|were|is)\s+(?:false|invalid|void|cancelled?|revoked|null|wrong|incorrect|obsolete|expired|not\s+(?:valid|required|applicable|needed|necessary))'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Declaration that previous instructions are invalid or false"
+
+  - id: instruction_override_stop_processing
+    family: instruction_override
+    category: regex
+    pattern: 'stop\s+(?:processing|following|executing|running|obeying|listening\s+to)\s+(?:commands?|instructions?|requests?|prompts?|rules?)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Command to stop processing existing instructions"
+
+  - id: instruction_override_obfuscated
+    family: instruction_override
+    category: regex
+    pattern: 'i\s*g\s*n\s*o\s*r\s*e\s+.*?p\s*r\s*e\s*v\s*i\s*o\s*u\s*s'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Obfuscated 'ignore previous' with inserted whitespace"
+
+  - id: instruction_override_foreign
+    family: instruction_override
+    category: regex
+    pattern: '(?:ignoriere|ignorez|ignora|ignorar)\s+(?:die|les|le|la|las|los|el|todas?)?\s*(?:anweisung(?:en)?|instructions?|directi(?:ves?|ons?)|consignes?|istruzioni|instrucciones)'
+    severity: 3
+    weight: 5.0
+    enabled: true
+    description: "Instruction override in foreign language (German, French, Italian, Spanish)"
+
+  - id: instruction_override_template_marker
+    family: instruction_override
+    category: regex
+    pattern: '\{(?:NEW_INSTRUCTION|INJECTION|PAYLOAD|COMMAND|OVERRIDE)\}'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Template injection marker — {NEW_INSTRUCTION} and variants"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 2 — Role Confusion
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: role_confusion_identity_reassign
+    family: role_confusion
+    category: regex
+    pattern: '(?:you\s+are\s+now|from\s+now\s+(?:on\s+)?you\s+are|become|act\s+as\s+(?:if\s+you\s+(?:are|were)\s+)?|pretend\s+(?:to\s+be|you\s+are)|imagine\s+you\s+are|roleplay\s+as|role-play\s+as|assume\s+the\s+role\s+of|switch\s+to\s+being|transform\s+into)\s+(?:a\s+)?(?:different|new|the)?\s*\w+'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Attempt to reassign model identity or role"
+
+  - id: role_confusion_hypothetical
+    family: role_confusion
+    category: regex
+    pattern: '(?:become|enter|switch\s+to|activate|enable)\s+(?:a\s+)?(?:hypothetical|unrestricted|unfiltered|uncensored|jailbroken?|liberated|free)\s+(?:mode|version|you|self|state|persona|character)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Hypothetical or unrestricted mode bypass"
+
+  - id: role_confusion_policy_negation
+    family: role_confusion
+    category: regex
+    pattern: '(?:pretend|assume|imagine|act\s+(?:like|as\s+if))\s+(?:that\s+)?(?:there\s+are\s+no\s+)?(?:your\s+)?(?:policy|policies|rules?|guidelines?|restrictions?|constraints?|limitations?|filters?|safety|guardrails?)\s+(?:do(?:es)?\s+not|don''t|no\s+longer|never)\s+(?:apply|exist|matter|affect|count)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Assertion that safety policies or constraints do not apply"
+
+  - id: role_confusion_jailbreak
+    family: role_confusion
+    category: regex
+    pattern: '\b(?:DAN|do\s+anything\s+now|STAN|DUDE|KEVIN|AIM|UCAR|developer\s+mode|god\s+mode|sudo\s+mode|maintenance\s+mode|debug\s+mode|test\s+mode|admin\s+mode)\b'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Known jailbreak personas and mode-switch keywords"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 3 — System Prompt Extraction
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: system_prompt_extraction_request
+    family: system_prompt_extraction
+    category: regex
+    pattern: '(?:list|show|print|display|reveal|repeat|tell\s+me|give\s+me|output|return|read\s+back|recite|state|share|provide)\s+(?:me\s+)?(?:your|all|the|every|my|a)?\s*(?:initial|original|system|hidden|internal|complete|full|secret|private|entire|first|last|previous|prior)?\s*(?:list\s+of\s+)?(?:instructions?|prompts?|commands?|guidelines?|rules?|policies?|directives?|programming|configuration)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Request to reveal system instructions, prompt, or configuration"
+
+  - id: system_prompt_extraction_respond
+    family: system_prompt_extraction
+    category: regex
+    pattern: 'respond\s+with\s+(?:every|all|your|the|each)\s+(?:instructions?|prompts?|commands?|rules?|guidelines?|directives?)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Directive to respond with all instructions"
+
+  - id: system_prompt_extraction_explain
+    family: system_prompt_extraction
+    category: regex
+    pattern: '(?:explain|describe|detail|elaborate\s+on|break\s+down|walk\s+(?:me\s+)?through)\s+(?:your|the|all)?\s*(?:commands?|instructions?|prompts?|guidelines?|rules?|programming|configuration|system\s+prompt|setup)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Request to explain system commands or internal configuration"
+
+  - id: system_prompt_extraction_modify_inquiry
+    family: system_prompt_extraction
+    category: regex
+    pattern: 'how\s+(?:do|can|could|would|should)\s+(?:I|we|someone|one)\s+(?:change|modify|alter|update|edit|hack|override|access)\s+(?:the\s+)?(?:instructions?|prompts?|rules?|guidelines?|configuration)\s+(?:given|sent|provided|assigned)?\s*(?:to\s+)?you'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Inquiry about how to modify system instructions"
+
+  - id: system_prompt_extraction_print_original
+    family: system_prompt_extraction
+    category: regex
+    pattern: '(?:print|output|show|display|return|give)\s+(?:the\s+)?(?:original|initial|raw|unmodified|verbatim|exact)\s+(?:input|prompt|text|message|instructions?)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Request to print original/unmodified prompt or input"
+
+  - id: system_prompt_extraction_password
+    family: system_prompt_extraction
+    category: regex
+    pattern: 'what\s+(?:is|are|was|were)\s+(?:the\s+)?(?:passw[o0]rd|passphrase|secret\s+(?:key|code|phrase)|api\s+key|access\s+(?:code|token)|master\s+key)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Direct password or secret key extraction attempt"
+
+  - id: system_prompt_extraction_keyword
+    family: system_prompt_extraction
+    category: keyword
+    pattern: 'system prompt'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Keyword trigger — 'system prompt'"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 4 — Tool Misuse
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: tool_misuse_shell_exec
+    family: tool_misuse
+    category: regex
+    pattern: '(?:run|execute|call|invoke|spawn|trigger|fire|start|launch)\s+(?:a\s+)?(?:shell|bash|cmd|system|command|exec|terminal|subprocess|powershell|script|program|binary|process)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Request to execute shell commands or system processes"
+
+  - id: tool_misuse_file_access
+    family: tool_misuse
+    category: regex
+    pattern: '(?:access|read|write|delete|modify|create|remove|open|view|cat|dump)\s+(?:the\s+)?(?:file|directory|folder|path|contents?\s+of)?\s*(?:/etc/|/root/|/home/|\.env\b|\.ssh|\.aws|\.git/|credentials|\.config\b|shadow|passwd\b|hosts\b|authorized_keys|id_rsa|\.pem\b|\.key\b)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Attempt to access sensitive system files or directories"
+
+  - id: tool_misuse_privilege_escalation
+    family: tool_misuse
+    category: regex
+    pattern: '(?:escalate|elevate|grant|give\s+me|provide\s+me|obtain|get\s+me)\s+(?:my\s+)?(?:admin(?:istrat(?:ive|or))?\s+)?(?:privileges?|permissions?|access|rights?|capabilities|authorization|root\s+access|sudo)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Privilege escalation or unauthorized access request"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 5 — Encoded Payloads
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: encoded_payload_decode_execute
+    family: encoded_payload
+    category: regex
+    pattern: '(?:decode|decrypt|deobfuscate|unescape|unpack)\s+(?:and\s+)?(?:run|execute|eval(?:uate)?|process|interpret|compile)\s+(?:this|the|following|that)?\s*(?:payload|command|code|script|input|string|data|message|blob|binary)?'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Request to decode and execute an opaque payload"
+
+  - id: encoded_payload_base64_blob
+    family: encoded_payload
+    category: regex
+    pattern: '[A-Za-z0-9+/]{40,}={0,2}'
+    severity: 3
+    weight: 5.0
+    enabled: true
+    description: "Suspicious base64-encoded blob (40+ chars)"
+
+  - id: encoded_payload_hex_sequence
+    family: encoded_payload
+    category: regex
+    pattern: '(?:\\x[0-9a-fA-F]{2}){8,}'
+    severity: 3
+    weight: 5.0
+    enabled: true
+    description: "Hex-escaped byte sequence (8+ bytes)"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 6 — Data Exfiltration
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: data_exfil_secrets
+    family: data_exfiltration
+    category: regex
+    pattern: '(?:dump|extract|export|list|show|reveal|print|output|return|display|give\s+me|tell\s+me|send\s+me)\s+(?:all\s+)?(?:the\s+)?(?:api\s+)?(?:keys?|tokens?|secrets?|credentials?|passwords?|auth(?:entication)?\s+(?:data|info(?:rmation)?|tokens?|details?))'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Attempt to extract API keys, tokens, or credentials"
+
+  - id: data_exfil_env_vars
+    family: data_exfiltration
+    category: regex
+    pattern: '(?:dump|list|show|export|print|display|reveal|output|give\s+me)\s+(?:all\s+)?(?:the\s+)?(?:env(?:ironment)?)\s*(?:vars?|variables?)?'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Attempt to dump environment variables"
+
+  - id: data_exfil_private_data
+    family: data_exfiltration
+    category: regex
+    pattern: '(?:return|show|list|dump|extract|export|display|give\s+me|output|reveal|send)\s+(?:all\s+)?(?:the\s+)?(?:private|customer|user|personal|sensitive|confidential|internal|proprietary)\s+(?:records?|data|info(?:rmation)?|details?|files?|documents?|logs?|databases?)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Attempt to exfiltrate private or sensitive data"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 7 — Output Manipulation
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: output_manipulation_format_only
+    family: output_manipulation
+    category: regex
+    pattern: '(?:respond|answer|output|return|format)\s+(?:only\s+)?(?:in|as)\s+(?:json|xml|yaml|csv|markdown|html|sql|regex)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Forced output format override (json/xml/yaml/etc.)"
+
+  - id: output_manipulation_only_value
+    family: output_manipulation
+    category: regex
+    pattern: '(?:respond|answer|output|return)\s+(?:only|just)\s+(?:the\s+)?(?:code|json|xml|yaml|csv|markdown|html|sql|regex|number|value)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Restrictive output instruction to omit normal response context"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 8 — Context Injection / Goal Manipulation
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: context_injection_background
+    family: context_injection
+    category: regex
+    pattern: '(?:background\s+context|context\s+provided|use\s+this\s+context|consider\s+this\s+context|based\s+on\s+the\s+context|given\s+the\s+context)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Injected or forced context framing"
+
+  - id: context_injection_false_premise
+    family: context_injection
+    category: regex
+    pattern: '(?:new\s+research|recent\s+studies?|it\s+is\s+now\s+proven|widely\s+accepted|experts\s+agree)\s+that\s+'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Authority-claiming false premise injection"
+
+  - id: context_injection_goal_shift
+    family: context_injection
+    category: regex
+    pattern: '(?:from\s+now\s+on|going\s+forward|for\s+the\s+rest\s+of\s+this\s+conversation)\s+.*?(?:you\s+will|always)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Persistent goal shift or instruction persistence"
+
+  - id: context_injection_history_rewrite
+    family: context_injection
+    category: regex
+    pattern: '(?:delete|erase|remove|edit|rewrite)\s+(?:the\s+)?(?:previous|prior|earlier)\s+(?:messages?|turns?|history|context)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Conversation history rewrite or deletion attempt"
+
+  - id: context_injection_temporal
+    family: context_injection
+    category: regex
+    pattern: '(?:imagine|pretend)\s+it\s+is\s+the\s+year\s+\d{4}|(?:rewind|fast\s+forward)\s+time'
+    severity: 2
+    weight: 4.0
+    enabled: true
+    description: "Temporal context manipulation"
+
+  - id: context_injection_system_message
+    family: context_injection
+    category: regex
+    pattern: '(?:system|developer|tool|assistant)\s+message\s*:'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Injected system/developer message marker"
+
+  - id: context_injection_instruction_to_ai
+    family: context_injection
+    category: regex
+    pattern: '(?:instruction\s+to\s+(?:the\s+)?(?:ai|assistant|model|system|crawler|bot))'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Explicit instruction directed at the AI within content"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 9 — Structured Data Injection
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: structured_data_instruction_field
+    family: structured_data_injection
+    category: regex
+    pattern: '"(?:instruction|system|developer|prompt|role|policy)"\s*:'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Instruction-like fields embedded in structured data"
+
+  - id: structured_data_yaml_exec
+    family: structured_data_injection
+    category: regex
+    pattern: '(?:!!python/object/apply|!python/object/apply|!<\s*!?python/object/apply)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "YAML deserialization payload marker"
+
+  - id: structured_data_ssti_payload
+    family: structured_data_injection
+    category: regex
+    pattern: '\{\{.*?(?:__class__|__mro__|__subclasses__|__globals__|os\.system|popen|subprocess).*?\}\}'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Template injection payload marker (Jinja-like)"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 10 — Indirect Injection Sources
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: indirect_injection_document
+    family: indirect_injection
+    category: regex
+    pattern: '(?:pdf|docx?|document|spreadsheet|slide|file)\s+(?:contains|with|including)\s+(?:hidden|embedded)\s+(?:prompt|instruction)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Hidden prompt in uploaded document"
+
+  - id: indirect_injection_web
+    family: indirect_injection
+    category: regex
+    pattern: '(?:html\s+comment|webpage|website|crawler|scrape|crawl)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Web content prompt injection marker"
+
+  - id: indirect_injection_email
+    family: indirect_injection
+    category: regex
+    pattern: '(?:email|inbox|subject\s+line|mail)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Email-based prompt injection marker"
+
+  - id: indirect_injection_social
+    family: indirect_injection
+    category: regex
+    pattern: '(?:tweet|post|social\s+media|hashtag)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Social media prompt injection marker"
+
+  - id: indirect_injection_database
+    family: indirect_injection
+    category: regex
+    pattern: '(?:database|db|record|row|entry|index)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Database content prompt injection marker"
+
+  - id: indirect_injection_repo
+    family: indirect_injection
+    category: regex
+    pattern: '(?:repo(?:sitory)?|code\s+comment|pull\s+request|commit)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Code repository prompt injection marker"
+
+  - id: indirect_injection_config
+    family: indirect_injection
+    category: regex
+    pattern: '(?:config(?:uration)?|yaml|ini|toml|env)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Configuration file prompt injection marker"
+
+  - id: indirect_injection_iot
+    family: indirect_injection
+    category: regex
+    pattern: '(?:iot|sensor|device|telemetry|device\s+name)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "IoT or telemetry prompt injection marker"
+
+  - id: indirect_injection_api
+    family: indirect_injection
+    category: regex
+    pattern: '(?:api|third-?party|webhook|response\s+body)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Third-party API prompt injection marker"
+
+  - id: indirect_injection_supply_chain
+    family: indirect_injection
+    category: regex
+    pattern: '(?:training\s+data|dataset|corpus|supply\s+chain|model\s+update)\s+.*(?:poison|inject|prompt|backdoor)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Supply-chain prompt injection marker"
+
+  - id: indirect_injection_system_generated
+    family: indirect_injection
+    category: regex
+    pattern: '(?:system\s+message|error\s+occurred|log\s+message)\s+.*(?:instruction|prompt)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "System-generated context injection marker"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 11 — Jailbreak Framing
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: jailbreak_educational_disclaimer
+    family: jailbreak
+    category: regex
+    pattern: '(?:for\s+(?:educational|research|academic|testing)\s+purposes\s+only|thought\s+experiment|purely\s+theoretical|fictional\s+context)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Jailbreak framing via harmlessness disclaimers"
+
+  - id: jailbreak_fictional_roleplay
+    family: jailbreak
+    category: regex
+    pattern: '(?:role\s*play|role-?play|fictional\s+character|in\s+this\s+story|for\s+this\s+story)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Roleplay framing used to bypass safeguards"
+
+  - id: jailbreak_safety_bypass
+    family: jailbreak
+    category: regex
+    pattern: '(?:without\s+endorsing|no\s+harm\s+intended|do\s+not\s+condone)\s+.*(?:still|but)\s+(?:provide|explain|describe)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Disclaimed unsafe request pattern"
+
+  - id: jailbreak_few_shot_prompting
+    family: jailbreak
+    category: regex
+    pattern: '(?:example\s+1|example\s+2|few-?shot|now\s+generate\s+a\s+new\s+example)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Few-shot prompt framing for harmful generation"
+
+  - id: jailbreak_encoding_obfuscation
+    family: jailbreak
+    category: regex
+    pattern: '(?:base64|unicode|leet|l33t|obfuscate|encode|rot13)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Encoding or obfuscation to evade filters"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 12 — Access Control / Workflow Bypass
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: access_control_bypass
+    family: access_control
+    category: regex
+    pattern: '(?:ignore|bypass|skip)\s+(?:auth|authorization|permission|access\s+control|role\s+check|policy|approval|verification)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Attempt to bypass authorization or approval checks"
+
+  - id: access_control_force_admin
+    family: access_control
+    category: regex
+    pattern: '(?:grant|assign|treat)\s+.*(?:admin|administrator|root|superuser)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Forced admin role or privilege assignment"
+
+  - id: access_control_remove_filter
+    family: access_control
+    category: regex
+    pattern: '(?:remove|drop|omit)\s+(?:the\s+)?(?:where\s+clause|filter|restriction|user\s+id)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Instruction to remove authorization filters"
+
+  - id: access_control_force_allow
+    family: access_control
+    category: regex
+    pattern: '(?:always|regardless)\s+(?:grant|allow|approve)\s+'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Forced allow/approve despite checks"
+
+  - id: access_control_link_override
+    family: access_control
+    category: regex
+    pattern: '(?:ignore|override)\s+(?:the\s+)?(?:requested|user)\s+(?:id|filename|resource)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "IDOR-style override of requested resource"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 13 — Code Execution / Command Injection
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: code_execution_shell_chain
+    family: code_execution
+    category: regex
+    pattern: '(?:;|&&|\|\|)\s*(?:rm\s+-rf|curl\s+https?://|wget\s+https?://|nc\s+\S+\s+\d+\s+-e|powershell\s+-enc|bash\s+-c)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Chained shell command injection pattern"
+
+  - id: code_execution_reverse_shell
+    family: code_execution
+    category: regex
+    pattern: '(?:nc\s+\S+\s+\d+\s+-e|/bin/bash\s+-i|bash\s+-i\s+>&|powershell\s+-nop\s+-w\s+hidden)'
+    severity: 5
+    weight: 10.0
+    enabled: true
+    description: "Reverse shell payload marker"
+
+  - id: code_execution_dangerous_calls
+    family: code_execution
+    category: regex
+    pattern: '(?:os\.system|subprocess\.Popen|Runtime\.getRuntime\(\)\.exec|ProcessBuilder|eval\(|exec\(|system\()'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Dangerous execution APIs"
+
+  - id: code_execution_deserialization
+    family: code_execution
+    category: regex
+    pattern: '(?:ObjectInputStream|readObject\(|pickle\.loads|yaml\.load\()'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Unsafe deserialization API markers"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 14 — Denial of Service (Prompt)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: dos_never_end
+    family: dos
+    category: regex
+    pattern: '(?:never\s+end|do\s+not\s+stop|without\s+ever\s+stopping|infinite|forever)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Infinite or never-ending output request"
+
+  - id: dos_excessive_length
+    family: dos
+    category: regex
+    pattern: '(?:one\s+million|1000000|ten\s+thousand|10000)\s+(?:lines|words|tokens)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Excessive output size request"
+
+  - id: dos_repeat_phrase
+    family: dos
+    category: regex
+    pattern: '(?:repeat|loop)\s+(?:the\s+phrase|this\s+word|this\s+sentence)\s+(?:forever|indefinitely|without\s+end)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Repetition loop request"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 15 — Filter Bypass / Obfuscation
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: filter_bypass_leetspeak
+    family: filter_bypass
+    category: regex
+    pattern: '(?:i[g9]n[o0]r[e3]|d[1i]s[r4]eg[a4]r[d])'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Leetspeak variants of ignore/disregard"
+
+  - id: filter_bypass_unicode
+    family: filter_bypass
+    category: regex
+    pattern: '(?:unicode|homoglyph|confusables|zero-?width|zwsp|zwnj)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Unicode obfuscation markers"
+
+  - id: filter_bypass_encoded
+    family: filter_bypass
+    category: regex
+    pattern: '(?:base64|rot13|hex(?:\s+)?encoded|url\s+encoded|percent-?encoded)'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Encoded payload / filter bypass markers"
+
+  - id: filter_bypass_char_limit
+    family: filter_bypass
+    category: regex
+    pattern: '(?:bypass|ignore)\s+(?:character|length|max(?:imum)?|input)\s+limit'
+    severity: 3
+    weight: 6.0
+    enabled: true
+    description: "Character limit bypass attempt"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Family 16 — Multi-Turn Persistence
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - id: multi_turn_persistence
+    family: multi_turn
+    category: regex
+    pattern: '(?:from\s+now\s+on|in\s+future\s+responses|for\s+all\s+future\s+questions|remember\s+this\s+instruction)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Instruction persistence across turns"
+
+  - id: multi_turn_sticky
+    family: multi_turn
+    category: regex
+    pattern: '(?:this\s+applies\s+to\s+all\s+subsequent|persist\s+this\s+rule|store\s+this\s+as\s+memory)'
+    severity: 4
+    weight: 8.0
+    enabled: true
+    description: "Sticky memory or rule persistence request"

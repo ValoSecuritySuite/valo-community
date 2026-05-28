@@ -1,0 +1,19 @@
+id: warn_pii
+name: Warn on PII exposure
+description: |
+  Surface a warning whenever the prompt or content carries personally
+  identifiable information (email today, extensible to phone / SSN tags).
+enabled: true
+enforce: true
+when:
+  - field: contains_email
+    op: eq
+    value: true
+then:
+  decision: warn
+  severity: 4
+  message: Personally identifiable information detected (email pattern).
+tags:
+  - compliance:gdpr
+  - pii
+version: 1

@@ -1,0 +1,22 @@
+description: 'Deny any prompt whose combined risk score crosses the enterprise threshold.
+
+  Combined score is produced by the rule engine (context + text-scan).
+
+  '
+enabled: true
+enforce: true
+id: block_high_risk
+name: Block high-risk prompts
+tags:
+- governance:enterprise
+- severity:critical
+then:
+  decision: deny
+  message: Combined risk score is at or above the enterprise deny threshold (>= 80).
+  severity: 9
+updated_at: '2026-05-07T12:15:01.120757Z'
+version: 1
+when:
+- field: combined_score
+  op: gte
+  value: 85

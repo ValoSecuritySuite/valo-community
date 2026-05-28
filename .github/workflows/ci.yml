@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Community edition tests
+        env:
+          APP_EDITION: community
+          APP_ENFORCEMENT_MODE: monitor
+          APP_CORRELATION_ENGINE_ENABLED: "false"
+          APP_EXECUTIVE_METRICS_ENABLED: "false"
+          APP_REPORTS_ENABLED: "false"
+          APP_PLAYBOOKS_ENABLED: "false"
+          APP_LEARNING_LOOP_ENABLED: "false"
+        run: |
+          pytest tests/test_edition_community.py \
+            tests/test_health.py \
+            tests/test_api.py \
+            tests/test_pipeline.py \
+            tests/test_policy_engine.py \
+            tests/test_policies_api.py \
+            -v --tb=short

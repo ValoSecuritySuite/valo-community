@@ -1,0 +1,11 @@
+[project]
+name = "valo-community"
+version = "0.1.0-community"
+description = "Valo Community Edition: FastAPI prompt-injection risk analysis, YAML governance policies, and monitor-mode AI Firewall proxy."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+filterwarnings = ["ignore::DeprecationWarning"]
