@@ -2,27 +2,24 @@
 
 ## Highlights
 
-First public **Community Edition** of Valo:
+First public release of Valo Community Edition:
 
 - `POST /analyze` with deterministic prompt-injection scoring
-- YAML rule engine + governance policies (`allow` / `warn` / `deny`)
+- YAML rule engine and governance policies (`allow` / `warn` / `deny`)
 - OpenAI-compatible proxy in **monitor** mode
-- Basic PDF reports (no custom branding)
+- PDF scan reports
 - Plugin loader
-- Docker Compose: `docker-compose.yml` (community defaults)
-- Web UI: Playground, Policies, Rules, Analysis, Firewall (monitor only)
+- Docker Compose stack (`docker-compose.yml`)
+- Web UI: Playground, Policies, Rules, Analysis, Firewall
 
-## Not included (enterprise)
+## Not included
 
 - Portfolio rollups (`/portfolio/*`)
 - AI Firewall **enforce** mode
 - Executive dashboard, reporting automation, playbooks, learning loop
 - Custom report branding
 
-## Upgrade path
-
-Set `APP_EDITION=enterprise` and enable the modules documented in
-`.env.example` for the full product surface.
+These capabilities are part of Valo Enterprise.
 
 ## Verify
 

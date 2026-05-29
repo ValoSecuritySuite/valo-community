@@ -1,4 +1,4 @@
-"""Tests for community vs enterprise edition gating."""
+"""Tests for Community Edition capability boundaries."""
 
 import os
 from unittest.mock import patch

@@ -2,7 +2,7 @@
 """Smoke test for Valo Community Edition.
 
 Usage:
-  APP_EDITION=community uvicorn app.main:app --port 8000 &
+  uvicorn app.main:app --port 8000 &
   python scripts/community_smoke.py --base-url http://localhost:8000
 """
 

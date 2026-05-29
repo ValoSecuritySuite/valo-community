@@ -30,7 +30,7 @@ _ENTERPRISE_ONLY_KEYWORDS = (
 def pytest_collection_modifyitems(config, items):
     if settings.edition != "community":
         return
-    skip = pytest.mark.skip(reason="requires APP_EDITION=enterprise")
+    skip = pytest.mark.skip(reason="not available in Community Edition")
     for item in items:
         nodeid = item.nodeid.lower()
         if any(keyword in nodeid for keyword in _ENTERPRISE_ONLY_KEYWORDS):

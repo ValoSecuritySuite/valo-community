@@ -1,7 +1,6 @@
 version: "3.9"
 
-# Valo Community Edition (this repository)
-# Usage: docker compose up --build
+# Valo Community Edition
 
 services:
   api:

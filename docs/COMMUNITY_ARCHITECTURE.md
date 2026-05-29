@@ -47,16 +47,16 @@ flowchart TB
 3. In monitor mode, denied prompts are logged but forwarded upstream.
 4. Response is streamed or returned from the configured upstream URL.
 
-## Edition gating
+## Capability scope
 
-Set `APP_EDITION=community` to:
+Community Edition exposes core analysis, policy, and proxy routes. The following
+are not available in this release:
 
-- Disable routers: `/executive`, `/reports`, `/playbooks`, `/learning`, `/outcomes`
-- Block `/portfolio/*` and portfolio rollup PDF routes
-- Reject `APP_ENFORCEMENT_MODE=enforce` at startup
-- Turn off correlation, executive metrics, reports scheduler, playbooks, learning loop
+- `/executive`, `/reports`, `/playbooks`, `/learning`, `/outcomes`
+- `/portfolio/*` and portfolio rollup PDF export
+- `APP_ENFORCEMENT_MODE=enforce` (startup validation rejects enforce mode)
 
-See `GET /meta/edition` for the active edition and feature flags.
+`GET /meta/edition` returns the active edition and feature flags.
 
 ## Deployment
 

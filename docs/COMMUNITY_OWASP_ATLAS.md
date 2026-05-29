@@ -41,6 +41,6 @@ Example policies under `app/policies/governance/`:
 - `block_secret_exposure.yml` - deny on secret keywords (advisory in monitor mode)
 - `block_high_risk.yml` - deny when combined score is high
 
-In **community edition**, `APP_ENFORCEMENT_MODE` must be `monitor` or `off`.
-Policies with `enforce: true` log `would_block` but do not return HTTP 403 until
-you run the enterprise edition with `enforce` mode.
+Community Edition requires `APP_ENFORCEMENT_MODE` of `monitor` or `off`.
+Policies with `enforce: true` emit `would_block` annotations in monitor mode;
+HTTP blocking requires Valo Enterprise with enforce mode enabled.

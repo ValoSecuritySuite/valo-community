@@ -15,8 +15,8 @@ about: Report a problem with Valo Community Edition
 **Environment**
 
 - Valo version / tag:
-- `APP_EDITION`:
-- Docker or local:
+- Deployment (Docker Compose or local):
+- `APP_ENFORCEMENT_MODE`:
 
 **Logs**
 

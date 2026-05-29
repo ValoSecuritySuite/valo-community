@@ -120,8 +120,8 @@ def update_config(
             raise HTTPException(
                 status_code=403,
                 detail={
-                    "code": "edition_required",
-                    "message": "enforce mode is not available in the community edition.",
+                    "code": "feature_unavailable",
+                    "message": "Enforce mode is available in Valo Enterprise only.",
                 },
             )
         settings.enforcement_mode = payload.enforcement_mode

@@ -2,9 +2,10 @@
 
 Open-source, self-hostable AI input risk analysis and monitor-mode AI Firewall.
 
-This repository is the **public Community Edition**. The full enterprise product
-(portfolio rollups, enforce mode, executive dashboard, playbooks, learning loop)
-lives in the private `valo` repository.
+Valo Community Edition provides deterministic prompt-injection detection, YAML
+governance policies, and an OpenAI-compatible proxy for observability. Valo
+Enterprise extends this platform with enforce-mode blocking, portfolio analytics,
+executive reporting, playbooks, and managed deployment options.
 
 ## Quick start
 
@@ -27,21 +28,25 @@ curl -s -X POST http://localhost:8000/analyze \
 
 Sample payloads: [`demo/community/README.md`](demo/community/README.md).
 
-## What is included
+## Features
 
-- YAML rule engine + default prompt-injection rule pack
-- `POST /analyze` deterministic risk scoring
-- JSON + basic PDF reports (no custom branding)
-- Governance policies (`/policies/*`, allow / warn / deny)
+- YAML rule engine and default prompt-injection rule pack
+- `POST /analyze` with deterministic risk scoring
+- JSON and PDF scan reports
+- Governance policies (`/policies/*`) with `allow`, `warn`, and `deny` decisions
 - OpenAI-compatible proxy in **monitor** mode (`POST /v1/proxy/chat/completions`)
 - Plugin loader (`app/plugins/`)
 - Web UI: Playground, Policies, Rules, Analysis, Firewall
 
-## What is not in this repo (enterprise)
+## Enterprise capabilities
 
-- Portfolio rollups, enforce-mode blocking, executive dashboard
-- Reporting automation, playbooks, learning loop, correlation engine
-- Custom report branding, SSO, multi-tenant, managed cloud
+The following are available in Valo Enterprise, not in this release:
+
+- Portfolio rollups and multi-tenant analytics
+- AI Firewall **enforce** mode (request blocking)
+- Executive dashboard and automated reporting
+- Playbooks, learning loop, and correlation engine integrations
+- Custom report branding, SSO, and managed cloud hosting
 
 ## Local development
 
@@ -49,17 +54,16 @@ Sample payloads: [`demo/community/README.md`](demo/community/README.md).
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-APP_EDITION=community APP_ENFORCEMENT_MODE=monitor \
-  uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
-Web dev server:
+Web UI (development):
 
 ```bash
-cd web && npm install && VITE_VALO_EDITION=community npm run dev
+cd web && npm install && npm run dev
 ```
 
-## Tests and smoke
+## Tests
 
 ```bash
 pytest tests/test_edition_community.py tests/test_health.py tests/test_api.py -v
@@ -72,7 +76,6 @@ python scripts/community_smoke.py
 - [`docs/COMMUNITY_OWASP_ATLAS.md`](docs/COMMUNITY_OWASP_ATLAS.md)
 - [`docs/POLICY_ENGINE.md`](docs/POLICY_ENGINE.md)
 - [`docs/threat_model.md`](docs/threat_model.md)
-- [`UPSTREAM.md`](UPSTREAM.md) (syncing from the private `valo` repo)
 
 ## License
 

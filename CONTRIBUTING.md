@@ -8,25 +8,19 @@ Thank you for contributing to Valo Community Edition.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-APP_EDITION=community APP_ENFORCEMENT_MODE=monitor \
-  uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ## Tests
 
 ```bash
 pytest tests/test_edition_community.py tests/test_api.py tests/test_pipeline.py -v
-```
-
-Full suite (enterprise defaults):
-
-```bash
-pytest tests/ -v
+python scripts/community_smoke.py
 ```
 
 ## Pull requests
 
-- Keep changes focused; community edition must stay runnable with
-  `docker compose up --build`.
-- Do not commit secrets, `.env`, or `data/` artifacts.
-- Update docs when adding public API surface.
+- Keep changes focused and include tests for behavior changes.
+- Ensure `docker compose up --build` remains a valid quick-start path.
+- Do not commit secrets, `.env` files, or `data/` artifacts.
+- Update documentation when adding or changing public API surface.

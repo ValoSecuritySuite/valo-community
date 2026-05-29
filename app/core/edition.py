@@ -1,4 +1,4 @@
-"""Community vs enterprise edition helpers."""
+"""Edition capability helpers."""
 
 from __future__ import annotations
 
@@ -21,14 +21,13 @@ def is_enterprise() -> bool:
 
 
 def require_enterprise() -> None:
-    """Raise 404 when the route is not part of the community edition."""
+    """Raise 404 when the route requires Valo Enterprise."""
     if is_community():
         raise HTTPException(
             status_code=404,
             detail={
-                "code": "edition_required",
-                "message": "This endpoint is not available in the community edition.",
-                "edition": "enterprise",
+                "code": "feature_unavailable",
+                "message": "This endpoint is available in Valo Enterprise only.",
             },
         )
 

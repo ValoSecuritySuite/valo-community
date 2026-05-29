@@ -26,10 +26,7 @@ class Settings(BaseSettings):
 
     edition: Literal["community", "enterprise"] = Field(
         default="community",
-        description=(
-            "Product edition. This repository is the Community Edition "
-            "(always community). enterprise is rejected at validation."
-        ),
+        description="Product edition (Community Edition only; enterprise is not supported).",
     )
 
     rules_path: Path = Field(
@@ -380,8 +377,8 @@ class Settings(BaseSettings):
     def _apply_community_edition_defaults(self) -> "Settings":
         if self.edition == "enterprise":
             raise ValueError(
-                "This repository is Valo Community Edition only. "
-                "Use the private valo repository for APP_EDITION=enterprise."
+                "APP_EDITION=enterprise is not supported in Valo Community Edition. "
+                "Enterprise features require Valo Enterprise."
             )
         object.__setattr__(self, "edition", "community")
         if self.enforcement_mode == "enforce":
