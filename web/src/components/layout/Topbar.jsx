@@ -68,6 +68,7 @@ export default function Topbar({
   backendLabel,
   onRefresh,
   refreshing,
+  enforceEnterpriseOnly = false,
 }) {
   const { pathname } = useLocation()
   const meta = ROUTE_TITLES[pathname] || {
@@ -85,7 +86,12 @@ export default function Topbar({
       </div>
 
       <div className="app-topbar-actions">
-        <ModePill mode={mode} busy={modeBusy} onClick={onChangeMode} />
+        <ModePill
+          mode={mode}
+          busy={modeBusy}
+          onClick={onChangeMode}
+          enforceEnterpriseOnly={enforceEnterpriseOnly}
+        />
         <span className="status-pill">{backendLabel}</span>
         <button
           type="button"

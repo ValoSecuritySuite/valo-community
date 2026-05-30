@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { getEditionMeta, isCommunityEdition } from './api/edition.js'
+import EnterpriseGate from './components/EnterpriseGate.jsx'
 import AppShell from './components/layout/AppShell.jsx'
 import AnalysisView from './views/AnalysisView.jsx'
 import ExecutiveView from './views/ExecutiveView.jsx'
@@ -16,13 +17,6 @@ import ReportsView from './views/ReportsView.jsx'
 import RulesView from './views/RulesView.jsx'
 import SettingsView from './views/SettingsView.jsx'
 
-function EnterpriseOnly({ children, isCommunity }) {
-  if (isCommunity) {
-    return <Navigate to="/" replace />
-  }
-  return children
-}
-
 export default function App() {
   const editionQuery = useQuery({
     queryKey: ['meta', 'edition'],
@@ -33,14 +27,14 @@ export default function App() {
 
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route element={<AppShell isCommunity={isCommunity} />}>
         <Route index element={<OverviewView />} />
         <Route
           path="executive"
           element={
-            <EnterpriseOnly isCommunity={isCommunity}>
+            <EnterpriseGate feature="executive">
               <ExecutiveView />
-            </EnterpriseOnly>
+            </EnterpriseGate>
           }
         />
         <Route path="firewall" element={<FirewallView />} />
@@ -51,33 +45,33 @@ export default function App() {
         <Route
           path="ingestion"
           element={
-            <EnterpriseOnly isCommunity={isCommunity}>
+            <EnterpriseGate feature="ingestion">
               <IngestionView />
-            </EnterpriseOnly>
+            </EnterpriseGate>
           }
         />
         <Route
           path="outcomes"
           element={
-            <EnterpriseOnly isCommunity={isCommunity}>
+            <EnterpriseGate feature="outcomes">
               <OutcomesView />
-            </EnterpriseOnly>
+            </EnterpriseGate>
           }
         />
         <Route
           path="learning"
           element={
-            <EnterpriseOnly isCommunity={isCommunity}>
+            <EnterpriseGate feature="learning">
               <LearningView />
-            </EnterpriseOnly>
+            </EnterpriseGate>
           }
         />
         <Route
           path="reports"
           element={
-            <EnterpriseOnly isCommunity={isCommunity}>
+            <EnterpriseGate feature="reports">
               <ReportsView />
-            </EnterpriseOnly>
+            </EnterpriseGate>
           }
         />
         <Route path="settings" element={<SettingsView />} />

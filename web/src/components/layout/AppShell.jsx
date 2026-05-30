@@ -11,7 +11,7 @@ import Topbar from './Topbar.jsx'
 const ENTERPRISE_MODE_CYCLE = ['off', 'monitor', 'enforce']
 const COMMUNITY_MODE_CYCLE = ['off', 'monitor']
 
-export default function AppShell() {
+export default function AppShell({ isCommunity: isCommunityProp = false }) {
   const queryClient = useQueryClient()
   const [modeBusy, setModeBusy] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -22,8 +22,10 @@ export default function AppShell() {
     staleTime: 60_000,
   })
 
-  const isCommunity = isCommunityEdition(editionQuery.data)
+  const isCommunity =
+    isCommunityProp || isCommunityEdition(editionQuery.data)
   const modeCycle = isCommunity ? COMMUNITY_MODE_CYCLE : ENTERPRISE_MODE_CYCLE
+  const enforceEnterpriseOnly = isCommunity
 
   const configQuery = useQuery({
     queryKey: ['enforcement', 'config'],
@@ -85,6 +87,7 @@ export default function AppShell() {
           backendLabel={backendLabel}
           onRefresh={handleRefresh}
           refreshing={refreshing}
+          enforceEnterpriseOnly={enforceEnterpriseOnly}
         />
         <div className="app-main-body">
           <Outlet

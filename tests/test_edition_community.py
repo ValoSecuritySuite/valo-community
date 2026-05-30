@@ -66,6 +66,19 @@ def test_community_enforce_mode_rejected_at_startup(monkeypatch):
         reload(config_mod)
 
 
+def test_community_dashboard_data(community_client):
+    community_client.post(
+        "/analyze",
+        json={"target": "dash-test", "prompt": "summarize this safely"},
+    )
+    resp = community_client.get("/dashboard/data")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "executive_summary" in body
+    assert body["executive_summary"]["total_scans"] >= 1
+    assert "scans" in body
+
+
 def test_community_analyze_works(community_client):
     resp = community_client.post(
         "/analyze",

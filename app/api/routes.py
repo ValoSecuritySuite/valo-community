@@ -21,7 +21,7 @@ from app.schemas import (
     ScanReport,
 )
 from app.services.pdf_report_generator import generate_executive_pdf
-from app.services.dashboard import get_scan_report, record_scan_detail
+from app.services.dashboard import build_dashboard_payload, get_scan_report, record_scan_detail
 from app.services.portfolio import build_scan_result, record_scan_result
 from app.services.pipeline import get_or_run_pipeline, run_pipeline
 from app.services.report_generator import build_rules_info
@@ -219,6 +219,13 @@ def export_single_scan_pdf(request: Request, scan_id: str) -> StreamingResponse:
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.get("/dashboard/data")
+@limiter.limit(_rate_limit_for("GET", "/dashboard/data"))
+def dashboard_data(request: Request) -> dict:
+    """Return in-memory scan history for the Overview dashboard (Community Edition)."""
+    return build_dashboard_payload()
 
 
 @router.get("/settings", response_model=BackendSettingsResponse)

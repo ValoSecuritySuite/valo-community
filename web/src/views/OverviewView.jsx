@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 
 import { getDashboard } from '../api/dashboard.js'
 import { getEvents, getStats } from '../api/enforcement.js'
@@ -36,6 +36,9 @@ function emptyDashboard() {
 }
 
 export default function OverviewView() {
+  const { isCommunity = false } = useOutletContext() || {}
+  const portfolioEnterpriseOnly = isCommunity
+
   const dashboardQuery = useQuery({
     queryKey: ['dashboard'],
     queryFn: getDashboard,
@@ -100,6 +103,9 @@ export default function OverviewView() {
   }, [dashboard.scans, severityFilter, sourceFilter, scoreSort])
 
   const handleExportRollupPdf = async () => {
+    if (portfolioEnterpriseOnly) {
+      return
+    }
     setExportError(null)
     setExportLoading(true)
     try {
@@ -338,12 +344,20 @@ export default function OverviewView() {
             </button>
             <button
               type="button"
-              className="btn btn-primary"
+              className={`btn ${portfolioEnterpriseOnly ? 'btn-secondary' : 'btn-primary'}`}
               onClick={handleExportRollupPdf}
-              disabled={exportLoading}
-              title="Export portfolio rollup PDF"
+              disabled={exportLoading || portfolioEnterpriseOnly}
+              title={
+                portfolioEnterpriseOnly
+                  ? 'Portfolio rollup PDF export requires Valo Enterprise'
+                  : 'Export portfolio rollup PDF'
+              }
             >
-              {exportLoading ? 'Exporting...' : 'Export rollup PDF'}
+              {portfolioEnterpriseOnly
+                ? 'Rollup PDF (Enterprise)'
+                : exportLoading
+                  ? 'Exporting...'
+                  : 'Export rollup PDF'}
             </button>
           </div>
         </div>

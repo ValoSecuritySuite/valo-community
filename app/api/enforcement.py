@@ -114,9 +114,7 @@ def update_config(
     trails.
     """
     if payload.enforcement_mode is not None:
-        from app.core.edition import is_community
-
-        if is_community() and payload.enforcement_mode == "enforce":
+        if payload.enforcement_mode == "enforce":
             raise HTTPException(
                 status_code=403,
                 detail={

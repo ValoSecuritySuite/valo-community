@@ -54,15 +54,7 @@ export const ALL_NAV_SECTIONS = [
   },
 ]
 
-export function navSectionsForEdition(isCommunity) {
-  if (!isCommunity) {
-    return ALL_NAV_SECTIONS
-  }
-
-  return ALL_NAV_SECTIONS.filter((section) => !section.enterpriseOnly)
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => !item.enterpriseOnly),
-    }))
-    .filter((section) => section.items.length > 0)
+/** All nav sections; enterprise items stay visible in Community with badges. */
+export function navSectionsForEdition() {
+  return ALL_NAV_SECTIONS
 }

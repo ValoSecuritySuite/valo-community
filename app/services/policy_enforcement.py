@@ -23,9 +23,6 @@ from app.schemas import (
     PolicySet,
     RuleSet,
 )
-from app.playbooks.events import from_enforcement_outcome as _build_playbook_event
-from app.playbooks.runtime import dispatch as _dispatch_playbooks
-from app.services.correlation_emitter import emit_outcome as _emit_correlation
 from app.services.enforcement_events import record_event
 from app.services.pipeline import run_pipeline, run_pipeline_raw
 from app.services.policy_engine import aggregate_decision, policies_by_id
@@ -177,19 +174,6 @@ def log_enforcement_outcome(
         record_event(outcome, route=route, direction=direction)
     except Exception:
         logger.exception("enforcement_event_record_failed trace_id=%s", outcome.trace_id)
-    try:
-        _emit_correlation(outcome, route=route, direction=direction)
-    except Exception:
-        logger.exception("correlation_emit_dispatch_failed trace_id=%s", outcome.trace_id)
-    try:
-        playbook_event = _build_playbook_event(
-            outcome, route=route, direction=direction
-        )
-        _dispatch_playbooks(playbook_event)
-    except Exception:
-        logger.exception(
-            "playbook_dispatch_failed trace_id=%s", outcome.trace_id
-        )
 
 
 __all__ = [

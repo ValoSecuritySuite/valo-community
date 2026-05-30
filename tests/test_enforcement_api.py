@@ -238,15 +238,24 @@ class TestConfigEndpoint:
         assert body["enforcement_max_body_bytes"] > 0
         assert body["event_buffer_capacity"] >= 1
 
-    def test_patch_config_updates_mode(self, client: TestClient) -> None:
+    def test_patch_config_rejects_enforce_mode_in_community(self, client: TestClient) -> None:
         response = client.patch(
             "/enforcement/config",
             json={"enforcement_mode": "enforce"},
         )
+        assert response.status_code == 403
+        detail = response.json()["detail"]
+        assert detail["code"] == "feature_unavailable"
+
+    def test_patch_config_updates_mode_to_off(self, client: TestClient) -> None:
+        response = client.patch(
+            "/enforcement/config",
+            json={"enforcement_mode": "off"},
+        )
         assert response.status_code == 200
         body = response.json()
-        assert body["enforcement_mode"] == "enforce"
-        assert settings.enforcement_mode == "enforce"
+        assert body["enforcement_mode"] == "off"
+        assert settings.enforcement_mode == "off"
 
     def test_patch_config_updates_proxy_url_and_timeout(self, client: TestClient) -> None:
         response = client.patch(

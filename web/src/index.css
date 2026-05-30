@@ -1117,6 +1117,85 @@ th {
   box-shadow: inset 2px 0 0 var(--brand);
 }
 
+.sidebar-link-enterprise {
+  opacity: 0.88;
+}
+
+.sidebar-link-enterprise:hover {
+  background: #f4f0ff;
+  color: #4c1d95;
+}
+
+.sidebar-link-badge,
+.sidebar-section-badge {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+  white-space: nowrap;
+}
+
+.sidebar-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-section-badge {
+  margin-left: 0;
+}
+
+.edition-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.edition-badge-enterprise {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+
+.edition-badge-muted {
+  background: #f1f5f9;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.enterprise-upsell {
+  max-width: 720px;
+}
+
+.enterprise-upsell-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.enterprise-upsell-note {
+  max-width: 58ch;
+}
+
+.enterprise-upsell-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .sidebar-link-icon {
   width: 18px;
   text-align: center;
