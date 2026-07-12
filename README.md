@@ -40,7 +40,7 @@ Sample payloads: [`demo/community/README.md`](demo/community/README.md).
 
 ## Enterprise capabilities
 
-The following are available in Valo Enterprise, not in this release:
+The following are available in Valo Enterprise under valosecurity.ai, and not in this release:
 
 - Portfolio rollups and multi-tenant analytics
 - AI Firewall **enforce** mode (request blocking)
