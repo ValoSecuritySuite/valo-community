@@ -1,82 +1,132 @@
-# Valo Community Edition
+# Valo
 
-Open-source, self-hostable AI input risk analysis and monitor-mode AI Firewall.
+## Deterministic AI Governance & Policy Enforcement
 
-Valo Community Edition provides deterministic prompt-injection detection, YAML
-governance policies, and an OpenAI-compatible proxy for observability. Valo
-Enterprise extends this platform with enforce-mode blocking, portfolio analytics,
-executive reporting, playbooks, and managed deployment options.
+Valo is an open-source AI security policy engine that enables organizations to inspect, evaluate, and enforce security policies for Large Language Models (LLMs), AI applications, and AI workflows.
 
-## Quick start
+Unlike AI systems that rely solely on probabilistic detection, Valo provides deterministic policy enforcement using configurable governance rules, explainable decisions, and repeatable security controls.
 
-```bash
-docker compose up --build
+---
+
+## Why Valo?
+
+Organizations are rapidly deploying AI across business-critical workflows while struggling to answer questions like:
+
+- Which prompts violate security policy?
+- How should sensitive data be handled?
+- Can AI-generated content be trusted?
+- How do we enforce governance consistently?
+
+Valo provides a policy-driven answer.
+
+---
+
+## Key Features
+
+- Deterministic AI policy engine
+- YAML-based policy definitions
+- Prompt inspection
+- Risk scoring
+- Explainable policy decisions
+- AI governance workflows
+- PDF security reports
+- REST API
+- Docker deployment
+
+---
+
+## Example Use Cases
+
+- AI Governance
+- Secure Prompt Validation
+- AI Risk Assessments
+- AI Firewall Proof of Concept
+- Internal AI Security Programs
+- Security Research
+
+---
+
+## Architecture
+
+```
+Client
+      │
+      ▼
+Prompt Request
+      │
+      ▼
+Policy Engine
+      │
+      ├── Rule Evaluation
+      ├── Risk Scoring
+      ├── Governance Policies
+      └── Decision Engine
+      │
+      ▼
+Allow / Block / Review
 ```
 
-| Service | URL |
-|---------|-----|
-| API + Swagger | http://localhost:8000/docs |
-| Web UI | http://localhost:8080 |
+---
 
-First scan:
+## Quick Start
 
 ```bash
-curl -s -X POST http://localhost:8000/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"target":"quickstart","prompt":"Summarize this update in plain language."}'
+git clone https://github.com/ValoSecuritySuite/Valo.git
+
+cd Valo
+
+docker compose up
 ```
 
-Sample payloads: [`demo/community/README.md`](demo/community/README.md).
-
-## Features
-
-- YAML rule engine and default prompt-injection rule pack
-- `POST /analyze` with deterministic risk scoring
-- JSON and PDF scan reports
-- Governance policies (`/policies/*`) with `allow`, `warn`, and `deny` decisions
-- OpenAI-compatible proxy in **monitor** mode (`POST /v1/proxy/chat/completions`)
-- Plugin loader (`app/plugins/`)
-- Web UI: Playground, Policies, Rules, Analysis, Firewall
-
-## Enterprise capabilities
-
-The following are available in Valo Enterprise under valosecurity.ai, and not in this release:
-
-- Portfolio rollups and multi-tenant analytics
-- AI Firewall **enforce** mode (request blocking)
-- Executive dashboard and automated reporting
-- Playbooks, learning loop, and correlation engine integrations
-- Custom report branding, SSO, and managed cloud hosting
-
-## Local development
+or
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+
+python app.py
 ```
 
-Web UI (development):
+---
 
-```bash
-cd web && npm install && npm run dev
-```
+## Roadmap
 
-## Tests
+- Policy Marketplace
+- AI Risk Dashboard
+- Additional Model Integrations
+- Expanded Reporting
+- Community Policy Packs
 
-```bash
-pytest tests/test_edition_community.py tests/test_health.py tests/test_api.py -v
-python scripts/community_smoke.py
-```
+---
 
-## Documentation
+## Enterprise Edition
 
-- [`docs/COMMUNITY_ARCHITECTURE.md`](docs/COMMUNITY_ARCHITECTURE.md)
-- [`docs/COMMUNITY_OWASP_ATLAS.md`](docs/COMMUNITY_OWASP_ATLAS.md)
-- [`docs/POLICY_ENGINE.md`](docs/POLICY_ENGINE.md)
-- [`docs/threat_model.md`](docs/threat_model.md)
+The commercial Valo Security Platform extends this project with:
+
+- Multi-tenancy
+- Enterprise RBAC
+- Single Sign-On
+- Compliance Reporting
+- Advanced Analytics
+- Audit Logging
+- Enterprise Dashboards
+- Commercial Support
+
+---
+
+## Contributing
+
+Contributions are welcome.
+
+See CONTRIBUTING.md.
+
+---
 
 ## License
 
-Apache License 2.0. See [`LICENSE`](LICENSE).
+Apache 2.0
+
+---
+
+## Learn More
+
+https://valosecurity.ai
