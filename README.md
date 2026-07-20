@@ -70,6 +70,15 @@ Allow / Block / Review
 
 ## Quick Start
 
+One-command launcher (recommended):
+
+```bash
+./start.sh          # macOS / Linux
+start.bat           # Windows (double-click, or from cmd/PowerShell)
+```
+
+Or with Compose / local install:
+
 ```bash
 git clone https://github.com/ValoSecuritySuite/Valo.git
 
