@@ -90,7 +90,7 @@ set "APP_LEARNING_LOOP_ENABLED=false"
 
 echo.
 echo Starting Valo API...
-start "Valo Community API" cmd /k "cd /d "%CD%" ^&^& "%CD%\.venv\Scripts\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+start "Valo Community API" /D "%CD%" "%CD%\.venv\Scripts\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 echo Waiting for API health...
 set /a tries=0
@@ -104,7 +104,7 @@ goto :wait_api
 
 :api_ready
 echo Starting Valo Web UI...
-start "Valo Community Web" cmd /k "cd /d "%CD%\web" ^&^& set VITE_BACKEND_URL=http://localhost:8000 ^&^& set VITE_VALO_EDITION=community ^&^& npm run dev -- --host 0.0.0.0 --port 8080"
+start "Valo Community Web" /D "%CD%\web" cmd.exe /k "set VITE_BACKEND_URL=http://localhost:8000&& set VITE_VALO_EDITION=community&& npm run dev -- --host 0.0.0.0 --port 8080"
 
 echo Waiting for Web UI...
 set /a webtries=0
