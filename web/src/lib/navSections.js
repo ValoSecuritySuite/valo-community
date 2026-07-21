@@ -1,39 +1,44 @@
 export const ALL_NAV_SECTIONS = [
   {
+    id: 'demo',
+    title: 'Experience',
+    items: [{ to: '/demo', label: 'Guided Demo', icon: '▶' }],
+  },
+  {
     id: 'executive',
     title: 'Executive',
     enterpriseOnly: true,
     items: [
-      { to: '/executive', label: 'Dashboard', icon: '\u2605' },
-      { to: '/reports', label: 'Reports', icon: '\u2630' },
+      { to: '/executive', label: 'Dashboard', icon: '★' },
+      { to: '/reports', label: 'Reports', icon: '☰' },
     ],
   },
   {
     id: 'operate',
     title: 'Operate',
     items: [
-      { to: '/', label: 'Overview', icon: '\u2316', end: true },
-      { to: '/firewall', label: 'AI Firewall', icon: '\u25C6' },
-      { to: '/playground', label: 'Playground', icon: '\u25B6' },
+      { to: '/', label: 'Overview', icon: '⌖', end: true },
+      { to: '/firewall', label: 'AI Firewall', icon: '◆' },
+      { to: '/playground', label: 'Playground', icon: '▶' },
     ],
   },
   {
     id: 'author',
     title: 'Author',
     items: [
-      { to: '/policies', label: 'Policies', icon: '\u00A7' },
-      { to: '/rules', label: 'Rules', icon: '\u2261' },
+      { to: '/policies', label: 'Policies', icon: '§' },
+      { to: '/rules', label: 'Rules', icon: '≡' },
     ],
   },
   {
     id: 'investigate',
     title: 'Investigate',
     items: [
-      { to: '/analysis', label: 'Analysis', icon: '\u25CB' },
+      { to: '/analysis', label: 'Analysis', icon: '○' },
       {
         to: '/ingestion',
         label: 'Ingestion',
-        icon: '\u2913',
+        icon: '⤓',
         enterpriseOnly: true,
       },
     ],
@@ -43,14 +48,14 @@ export const ALL_NAV_SECTIONS = [
     title: 'Learn',
     enterpriseOnly: true,
     items: [
-      { to: '/outcomes', label: 'Outcomes', icon: '\u25C9' },
-      { to: '/learning', label: 'Proposals', icon: '\u26A1' },
+      { to: '/outcomes', label: 'Outcomes', icon: '◉' },
+      { to: '/learning', label: 'Proposals', icon: '⚡' },
     ],
   },
   {
     id: 'configure',
     title: 'Configure',
-    items: [{ to: '/settings', label: 'Settings', icon: '\u2699' }],
+    items: [{ to: '/settings', label: 'Settings', icon: '⚙' }],
   },
 ]
 
