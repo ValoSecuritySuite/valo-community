@@ -5,6 +5,7 @@ import { getEditionMeta, isCommunityEdition } from './api/edition.js'
 import EnterpriseGate from './components/EnterpriseGate.jsx'
 import AppShell from './components/layout/AppShell.jsx'
 import AnalysisView from './views/AnalysisView.jsx'
+import DemoView from './views/DemoView.jsx'
 import ExecutiveView from './views/ExecutiveView.jsx'
 import FirewallView from './views/FirewallView.jsx'
 import IngestionView from './views/IngestionView.jsx'
@@ -29,6 +30,7 @@ export default function App() {
     <Routes>
       <Route element={<AppShell isCommunity={isCommunity} />}>
         <Route index element={<OverviewView />} />
+        <Route path="demo" element={<DemoView />} />
         <Route
           path="executive"
           element={
