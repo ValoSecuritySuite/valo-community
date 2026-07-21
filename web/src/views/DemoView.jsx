@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 
 import { simulate } from '../api/enforcement.js'
+import { openWritableReportWindow } from '../reportWindow.js'
 import './DemoView.css'
 
 const DEMO_SCENARIOS = [
@@ -90,11 +91,14 @@ function createPrintReport(results) {
   <h2>Portfolio findings</h2><table><thead><tr><th>Product</th><th>Finding count</th><th>Severity</th><th>Coverage</th></tr></thead><tbody>${PRODUCT_FINDINGS.map((item) => `<tr><td>${item.name}</td><td>${item.value}</td><td>${item.severity}</td><td>${item.detail}</td></tr>`).join('')}</tbody></table>
   <p class="footer">Sample demonstration data for Valo Security. Use the browser Print command and select “Save as PDF” to create a PDF.</p><script>window.onload=()=>window.print()</script></body></html>`
 
-  const popup = window.open('', '_blank', 'noopener,noreferrer')
-  if (popup) {
-    popup.document.write(html)
-    popup.document.close()
-  }
+  const popup = openWritableReportWindow()
+  if (!popup) return false
+
+  popup.document.open()
+  popup.document.write(html)
+  popup.document.close()
+  popup.opener = null
+  return true
 }
 
 export default function DemoView() {
@@ -138,6 +142,15 @@ export default function DemoView() {
     setRunningAll(false)
   }
 
+  const exportReport = () => {
+    const opened = createPrintReport(results)
+    setMessage(
+      opened
+        ? 'Executive report opened. Choose “Save as PDF” in the print dialog.'
+        : 'The browser blocked the report window. Allow pop-ups for localhost:8080 and try again.',
+    )
+  }
+
   const activeResult = results[activeScenario.id]
   const matched = activeResult?.decisions?.filter((decision) => decision.matched) || []
   const completed = Object.keys(results).length
@@ -156,7 +169,7 @@ export default function DemoView() {
             <button className="btn btn-primary demo-primary" type="button" onClick={runAll} disabled={runningAll || mutation.isPending}>
               {runningAll ? 'Running guided demo...' : '▶ Run complete demo'}
             </button>
-            <button className="btn btn-secondary" type="button" onClick={() => createPrintReport(results)}>
+            <button className="btn btn-secondary" type="button" onClick={exportReport}>
               Export executive PDF
             </button>
           </div>
@@ -249,7 +262,7 @@ export default function DemoView() {
           <div><span>Medium</span><i style={{ width: '48%' }} /><strong>10</strong></div>
           <div><span>Low</span><i style={{ width: '24%' }} /><strong>5</strong></div>
         </div>
-        <button className="btn btn-primary" type="button" onClick={() => createPrintReport(results)}>Create sample PDF report</button>
+        <button className="btn btn-primary" type="button" onClick={exportReport}>Create sample PDF report</button>
       </section>
     </div>
   )
